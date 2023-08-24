@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="python" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rosenbrock example &mdash; ParOpt  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=a888008e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Sellar problem" href="sellar.html" />
+    <link rel="prev" title="Options and generic interface for ParOpt optimziers" href="options.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ParOpt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="options.html">Options and generic interface for ParOpt optimziers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Rosenbrock example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#python-implementation">Python implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sellar.html">Sellar problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parallel_rosenbrock.html">Parallel Rosenbrock</a></li>
+<li class="toctree-l1"><a class="reference internal" href="openmdao_example.html">OpenMDAO example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parallel_openmdao_example.html">Parallel OpenMDAO example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/sparse.html">General Sparse Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference.html">Class reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ParOpt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Rosenbrock example</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="rosenbrock-example">
+<h1>Rosenbrock example<a class="headerlink" href="#rosenbrock-example" title="Permalink to this heading"></a></h1>
+<p>In this example we consider a python implementation of the following optimization problem:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+    \text{min} \qquad &amp; 100(x_2 - x_1^2)^2 + (1 - x_1)^2 \\
+    \text{with respect to} \qquad &amp; -2 \le x_{i} \le 2 \qquad i = 1, 2\\
+    \text{subject to} \qquad &amp; x_{1} + x_{2} + 5 \ge 0 \\
+\end{align}\end{split}\]</div>
+<section id="python-implementation">
+<h2>Python implementation<a class="headerlink" href="#python-implementation" title="Permalink to this heading"></a></h2>
+<p>The python implementation of this problem is as follows</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import some utilities</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">mpi4py.MPI</span> <span class="k">as</span> <span class="nn">MPI</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># Import ParOpt</span>
+<span class="kn">from</span> <span class="nn">paropt</span> <span class="kn">import</span> <span class="n">ParOpt</span>
+
+<span class="c1"># Create the rosenbrock function class</span>
+<span class="k">class</span> <span class="nc">Rosenbrock</span><span class="p">(</span><span class="n">ParOpt</span><span class="o">.</span><span class="n">Problem</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Set the communicator pointer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nvars</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ncon</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># The design history file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Initialize the base class</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Rosenbrock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncon</span><span class="p">)</span>
+
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">getVarsAndBounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Set the values of the bounds&#39;&#39;&#39;</span>
+        <span class="n">x</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="n">lb</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.0</span>
+        <span class="n">ub</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">2.0</span>
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">evalObjCon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Evaluate the objective and constraint&#39;&#39;&#39;</span>
+        <span class="c1"># Append the point to the solution history</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_hist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+        <span class="c1"># Evaluate the objective and constraints</span>
+        <span class="n">fail</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">fobj</span> <span class="o">=</span> <span class="mi">100</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">con</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">5.0</span>
+        <span class="k">return</span> <span class="n">fail</span><span class="p">,</span> <span class="n">fobj</span><span class="p">,</span> <span class="n">con</span>
+
+    <span class="k">def</span> <span class="nf">evalObjConGradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">A</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Evaluate the objective and constraint gradient&#39;&#39;&#39;</span>
+        <span class="n">fail</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># The objective gradient</span>
+        <span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">200</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">200</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># The constraint gradient</span>
+        <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="n">fail</span>
+
+<span class="n">problem</span> <span class="o">=</span> <span class="n">Rosenbrock</span><span class="p">()</span>
+
+<span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;algorithm&#39;</span><span class="p">:</span> <span class="s1">&#39;ip&#39;</span><span class="p">}</span>
+<span class="n">opt</span> <span class="o">=</span> <span class="n">ParOpt</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+<span class="n">opt</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This code produces the following output in the default file <code class="docutils literal notranslate"><span class="pre">paropt.out</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ParOptInteriorPoint</span> <span class="n">Parameter</span> <span class="n">Summary</span><span class="p">:</span>
+<span class="n">algorithm</span>                                <span class="n">ip</span>
+
+<span class="nb">iter</span> <span class="n">nobj</span> <span class="n">ngrd</span> <span class="n">nhvc</span>   <span class="n">alpha</span>   <span class="n">alphx</span>   <span class="n">alphz</span>         <span class="n">fobj</span>   <span class="o">|</span><span class="n">opt</span><span class="o">|</span> <span class="o">|</span><span class="n">infes</span><span class="o">|</span>  <span class="o">|</span><span class="n">dual</span><span class="o">|</span>      <span class="n">mu</span>    <span class="n">comp</span>   <span class="n">dmerit</span>     <span class="n">rho</span> <span class="n">info</span>
+   <span class="mi">0</span>    <span class="mi">1</span>    <span class="mi">1</span>    <span class="mi">0</span>      <span class="o">--</span>      <span class="o">--</span>      <span class="o">--</span>  <span class="mf">4.04000e+02</span> <span class="mf">8.5e+02</span> <span class="mf">9.4e+02</span> <span class="mf">8.4e+05</span> <span class="mf">1.7e+05</span> <span class="mf">1.7e+05</span>       <span class="o">--</span>      <span class="o">--</span>
+   <span class="mi">1</span>    <span class="mi">3</span>    <span class="mi">2</span>    <span class="mi">0</span> <span class="mf">3.5e-01</span> <span class="mf">1.0e-03</span> <span class="mf">1.0e-01</span>  <span class="mf">9.02442e+00</span> <span class="mf">1.6e+02</span> <span class="mf">9.4e+02</span> <span class="mf">8.7e+05</span> <span class="mf">4.2e+04</span> <span class="mf">1.6e+05</span> <span class="o">-</span><span class="mf">5.0e+05</span> <span class="mf">0.0e+00</span>
+   <span class="mi">2</span>    <span class="mi">4</span>    <span class="mi">3</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">8.3e-01</span> <span class="mf">1.0e+00</span>  <span class="mf">1.11146e+03</span> <span class="mf">1.8e+03</span> <span class="mf">1.6e+02</span> <span class="mf">2.8e+05</span> <span class="mf">1.0e+04</span> <span class="mf">9.1e+04</span> <span class="o">-</span><span class="mf">7.2e+05</span> <span class="mf">0.0e+00</span>
+   <span class="mi">3</span>    <span class="mi">5</span>    <span class="mi">4</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">2.84010e+02</span> <span class="mf">1.0e+03</span> <span class="mf">3.7e-01</span> <span class="mf">1.7e+04</span> <span class="mf">2.6e+03</span> <span class="mf">1.1e+04</span> <span class="o">-</span><span class="mf">4.2e+05</span> <span class="mf">0.0e+00</span>
+   <span class="mi">4</span>    <span class="mi">6</span>    <span class="mi">5</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">6.92825e+01</span> <span class="mf">5.1e+02</span> <span class="mf">5.3e-15</span> <span class="mf">3.5e+03</span> <span class="mf">6.5e+02</span> <span class="mf">2.7e+03</span> <span class="o">-</span><span class="mf">1.9e+04</span> <span class="mf">0.0e+00</span>
+   <span class="mi">5</span>    <span class="mi">7</span>    <span class="mi">6</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">2.07229e+01</span> <span class="mf">1.0e+02</span> <span class="mf">8.9e-16</span> <span class="mf">9.2e+02</span> <span class="mf">1.6e+02</span> <span class="mf">6.5e+02</span> <span class="o">-</span><span class="mf">2.4e+03</span> <span class="mf">0.0e+00</span>
+   <span class="mi">6</span>    <span class="mi">8</span>    <span class="mi">7</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">2.68808e+00</span> <span class="mf">4.8e+01</span> <span class="mf">2.8e-17</span> <span class="mf">1.5e+02</span> <span class="mf">4.1e+01</span> <span class="mf">1.6e+02</span> <span class="o">-</span><span class="mf">8.5e+01</span> <span class="mf">0.0e+00</span>
+   <span class="mi">7</span>    <span class="mi">9</span>    <span class="mi">8</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">2.34024e-01</span> <span class="mf">1.4e+01</span> <span class="mf">2.8e-16</span> <span class="mf">3.4e+01</span> <span class="mf">1.0e+01</span> <span class="mf">4.1e+01</span> <span class="o">-</span><span class="mf">8.6e+01</span> <span class="mf">0.0e+00</span>
+   <span class="mi">8</span>   <span class="mi">10</span>    <span class="mi">9</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">1.12205e-01</span> <span class="mf">1.9e+00</span> <span class="mf">1.4e-15</span> <span class="mf">7.9e+00</span> <span class="mf">2.6e+00</span> <span class="mf">1.0e+01</span> <span class="o">-</span><span class="mf">2.1e+01</span> <span class="mf">0.0e+00</span>
+   <span class="mi">9</span>   <span class="mi">11</span>   <span class="mi">10</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">1.12286e-01</span> <span class="mf">4.5e-02</span> <span class="mf">2.5e-16</span> <span class="mf">1.9e+00</span> <span class="mf">6.4e-01</span> <span class="mf">2.6e+00</span> <span class="o">-</span><span class="mf">5.6e+00</span> <span class="mf">0.0e+00</span>
+
+<span class="nb">iter</span> <span class="n">nobj</span> <span class="n">ngrd</span> <span class="n">nhvc</span>   <span class="n">alpha</span>   <span class="n">alphx</span>   <span class="n">alphz</span>         <span class="n">fobj</span>   <span class="o">|</span><span class="n">opt</span><span class="o">|</span> <span class="o">|</span><span class="n">infes</span><span class="o">|</span>  <span class="o">|</span><span class="n">dual</span><span class="o">|</span>      <span class="n">mu</span>    <span class="n">comp</span>   <span class="n">dmerit</span>     <span class="n">rho</span> <span class="n">info</span>
+  <span class="mi">10</span>   <span class="mi">12</span>   <span class="mi">11</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">1.11649e-01</span> <span class="mf">2.8e-01</span> <span class="mf">1.2e-15</span> <span class="mf">4.8e-01</span> <span class="mf">1.6e-01</span> <span class="mf">6.4e-01</span> <span class="o">-</span><span class="mf">1.4e+00</span> <span class="mf">0.0e+00</span>
+  <span class="mi">11</span>   <span class="mi">13</span>   <span class="mi">12</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">1.09062e-01</span> <span class="mf">8.3e-01</span> <span class="mf">7.2e-16</span> <span class="mf">1.2e-01</span> <span class="mf">4.0e-02</span> <span class="mf">1.6e-01</span> <span class="o">-</span><span class="mf">3.6e-01</span> <span class="mf">0.0e+00</span>
+  <span class="mi">12</span>   <span class="mi">14</span>   <span class="mi">13</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">1.04593e-01</span> <span class="mf">1.5e+00</span> <span class="mf">1.4e-15</span> <span class="mf">1.2e-03</span> <span class="mf">4.0e-02</span> <span class="mf">4.0e-02</span> <span class="o">-</span><span class="mf">9.5e-02</span> <span class="mf">0.0e+00</span>
+  <span class="mi">13</span>   <span class="mi">15</span>   <span class="mi">14</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">9.69024e-02</span> <span class="mf">2.5e+00</span> <span class="mf">2.8e-17</span> <span class="mf">7.7e-06</span> <span class="mf">4.0e-02</span> <span class="mf">4.0e-02</span> <span class="o">-</span><span class="mf">9.8e-03</span> <span class="mf">0.0e+00</span>
+  <span class="mi">14</span>   <span class="mi">16</span>   <span class="mi">15</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">8.39219e-02</span> <span class="mf">3.4e+00</span> <span class="mf">1.7e-16</span> <span class="mf">3.7e-05</span> <span class="mf">4.0e-02</span> <span class="mf">4.0e-02</span> <span class="o">-</span><span class="mf">1.7e-02</span> <span class="mf">0.0e+00</span>
+  <span class="mi">15</span>   <span class="mi">17</span>   <span class="mi">16</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">6.08092e-02</span> <span class="mf">3.3e+00</span> <span class="mf">3.2e-16</span> <span class="mf">8.3e-05</span> <span class="mf">4.0e-02</span> <span class="mf">4.0e-02</span> <span class="o">-</span><span class="mf">2.9e-02</span> <span class="mf">0.0e+00</span>
+  <span class="mi">16</span>   <span class="mi">18</span>   <span class="mi">17</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">3.10043e-02</span> <span class="mf">7.5e-01</span> <span class="mf">2.3e-16</span> <span class="mf">1.3e-04</span> <span class="mf">4.0e-02</span> <span class="mf">4.0e-02</span> <span class="o">-</span><span class="mf">4.2e-02</span> <span class="mf">0.0e+00</span>
+  <span class="mi">17</span>   <span class="mi">19</span>   <span class="mi">18</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">1.78352e-02</span> <span class="mf">2.5e+00</span> <span class="mf">2.6e-16</span> <span class="mf">2.5e-04</span> <span class="mf">4.0e-02</span> <span class="mf">4.0e-02</span> <span class="o">-</span><span class="mf">2.0e-02</span> <span class="mf">0.0e+00</span>
+  <span class="mi">18</span>   <span class="mi">20</span>   <span class="mi">19</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">8.31785e-03</span> <span class="mf">4.6e-01</span> <span class="mf">4.6e-16</span> <span class="mf">5.9e-05</span> <span class="mf">4.0e-02</span> <span class="mf">4.0e-02</span> <span class="o">-</span><span class="mf">1.3e-02</span> <span class="mf">0.0e+00</span>
+  <span class="mi">19</span>   <span class="mi">21</span>   <span class="mi">20</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">3.40797e-03</span> <span class="mf">1.2e+00</span> <span class="mf">8.2e-16</span> <span class="mf">1.7e-04</span> <span class="mf">4.0e-02</span> <span class="mf">4.0e-02</span> <span class="o">-</span><span class="mf">5.7e-03</span> <span class="mf">0.0e+00</span>
+
+<span class="nb">iter</span> <span class="n">nobj</span> <span class="n">ngrd</span> <span class="n">nhvc</span>   <span class="n">alpha</span>   <span class="n">alphx</span>   <span class="n">alphz</span>         <span class="n">fobj</span>   <span class="o">|</span><span class="n">opt</span><span class="o">|</span> <span class="o">|</span><span class="n">infes</span><span class="o">|</span>  <span class="o">|</span><span class="n">dual</span><span class="o">|</span>      <span class="n">mu</span>    <span class="n">comp</span>   <span class="n">dmerit</span>     <span class="n">rho</span> <span class="n">info</span>
+  <span class="mi">20</span>   <span class="mi">22</span>   <span class="mi">21</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">1.73702e-03</span> <span class="mf">1.3e-02</span> <span class="mf">6.3e-16</span> <span class="mf">3.0e-02</span> <span class="mf">1.0e-02</span> <span class="mf">4.0e-02</span> <span class="o">-</span><span class="mf">2.4e-03</span> <span class="mf">0.0e+00</span>
+  <span class="mi">21</span>   <span class="mi">23</span>   <span class="mi">22</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">3.31850e-04</span> <span class="mf">3.3e-01</span> <span class="mf">1.4e-15</span> <span class="mf">1.3e-03</span> <span class="mf">1.0e-02</span> <span class="mf">1.0e-02</span> <span class="o">-</span><span class="mf">2.4e-02</span> <span class="mf">0.0e+00</span>
+  <span class="mi">22</span>   <span class="mi">24</span>   <span class="mi">23</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">1.17623e-04</span> <span class="mf">8.6e-02</span> <span class="mf">9.6e-17</span> <span class="mf">7.5e-03</span> <span class="mf">2.5e-03</span> <span class="mf">1.0e-02</span> <span class="o">-</span><span class="mf">2.1e-04</span> <span class="mf">0.0e+00</span>
+  <span class="mi">23</span>   <span class="mi">25</span>   <span class="mi">24</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">8.89746e-06</span> <span class="mf">8.3e-02</span> <span class="mf">1.4e-16</span> <span class="mf">1.2e-04</span> <span class="mf">2.5e-03</span> <span class="mf">2.5e-03</span> <span class="o">-</span><span class="mf">5.8e-03</span> <span class="mf">0.0e+00</span>
+  <span class="mi">24</span>   <span class="mi">26</span>   <span class="mi">25</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">4.74120e-06</span> <span class="mf">1.9e-02</span> <span class="mf">2.7e-16</span> <span class="mf">1.9e-03</span> <span class="mf">6.2e-04</span> <span class="mf">2.5e-03</span> <span class="o">-</span><span class="mf">1.1e-05</span> <span class="mf">0.0e+00</span>
+  <span class="mi">25</span>   <span class="mi">27</span>   <span class="mi">26</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">3.36109e-07</span> <span class="mf">8.3e-04</span> <span class="mf">3.0e-16</span> <span class="mf">4.7e-04</span> <span class="mf">1.6e-04</span> <span class="mf">6.2e-04</span> <span class="o">-</span><span class="mf">1.4e-03</span> <span class="mf">0.0e+00</span>
+  <span class="mi">26</span>   <span class="mi">28</span>   <span class="mi">27</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">1.52109e-08</span> <span class="mf">4.4e-04</span> <span class="mf">6.8e-17</span> <span class="mf">1.2e-04</span> <span class="mf">3.9e-05</span> <span class="mf">1.6e-04</span> <span class="o">-</span><span class="mf">3.5e-04</span> <span class="mf">0.0e+00</span>
+  <span class="mi">27</span>   <span class="mi">29</span>   <span class="mi">28</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">9.47900e-10</span> <span class="mf">2.3e-05</span> <span class="mf">1.2e-15</span> <span class="mf">2.9e-05</span> <span class="mf">9.7e-06</span> <span class="mf">3.9e-05</span> <span class="o">-</span><span class="mf">8.8e-05</span> <span class="mf">0.0e+00</span>
+  <span class="mi">28</span>   <span class="mi">30</span>   <span class="mi">29</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">5.87613e-11</span> <span class="mf">5.4e-07</span> <span class="mf">4.8e-17</span> <span class="mf">7.3e-06</span> <span class="mf">2.4e-06</span> <span class="mf">9.7e-06</span> <span class="o">-</span><span class="mf">2.2e-05</span> <span class="mf">0.0e+00</span>
+  <span class="mi">29</span>   <span class="mi">31</span>   <span class="mi">30</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">3.66518e-12</span> <span class="mf">3.6e-08</span> <span class="mf">4.5e-16</span> <span class="mf">1.8e-06</span> <span class="mf">6.1e-07</span> <span class="mf">2.4e-06</span> <span class="o">-</span><span class="mf">5.5e-06</span> <span class="mf">0.0e+00</span>
+
+<span class="nb">iter</span> <span class="n">nobj</span> <span class="n">ngrd</span> <span class="n">nhvc</span>   <span class="n">alpha</span>   <span class="n">alphx</span>   <span class="n">alphz</span>         <span class="n">fobj</span>   <span class="o">|</span><span class="n">opt</span><span class="o">|</span> <span class="o">|</span><span class="n">infes</span><span class="o">|</span>  <span class="o">|</span><span class="n">dual</span><span class="o">|</span>      <span class="n">mu</span>    <span class="n">comp</span>   <span class="n">dmerit</span>     <span class="n">rho</span> <span class="n">info</span>
+  <span class="mi">30</span>   <span class="mi">32</span>   <span class="mi">31</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">2.29012e-13</span> <span class="mf">3.6e-09</span> <span class="mf">5.6e-16</span> <span class="mf">4.6e-07</span> <span class="mf">1.5e-07</span> <span class="mf">6.1e-07</span> <span class="o">-</span><span class="mf">1.4e-06</span> <span class="mf">0.0e+00</span>
+  <span class="mi">31</span>   <span class="mi">33</span>   <span class="mi">32</span>    <span class="mi">0</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span> <span class="mf">1.0e+00</span>  <span class="mf">1.30833e-14</span> <span class="mf">2.4e-10</span> <span class="mf">9.5e-16</span> <span class="mf">4.6e-08</span> <span class="mf">1.0e-07</span> <span class="mf">1.5e-07</span> <span class="o">-</span><span class="mf">3.5e-07</span> <span class="mf">0.0e+00</span>
+</pre></div>
+</div>
+<p>ParOpt: Successfully converged to requested tolerance
+The output from <code class="docutils literal notranslate"><span class="pre">ParOptInteriorPoint</span></code> consists of a summary of the non-default parameter values.
+Note that the <code class="docutils literal notranslate"><span class="pre">ParOptOptimizer</span></code> interface is used to run this example.
+This class provides a common interface for all optimizers in ParOpt and therefore the file lists all options for all the optimizers, including the trust region method and the method of moving asymptotes.
+Following the option settings, the output consists of a summary of the iteration history with the following columns:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">iter</span></code> the current iteration</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nobj</span></code> the number of objective and constraint evaluations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ngrd</span></code> the number of objective and constraint gradient evaluations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nhvc</span></code> the number of Hessian-vector products</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alpha</span></code> the step size</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alphax</span></code> the scaling factor applied to the primal components of the step</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alphaz</span></code> the scaling factor applied to the dual components of the step</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fobj</span></code> the objective value</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">|opt|</span></code> the optimality error in the specified norm</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">|infeas|</span></code> the infeasibility in the specified norm</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">|dual|</span></code> the error in the complementarity equation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mu</span></code> the barrier parameter</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">comp</span></code> the complementarity</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dmerit</span></code> the derivative of the merit function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rho</span></code> the value of the penalty parameter in the line search</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">info</span></code> additional information, usually about the quasi-Newton Hessian update or line search</p></li>
+</ul>
+<p>The file can be visualized using the example in <code class="docutils literal notranslate"><span class="pre">examples/plot_history/plot_history.py</span></code>.
+This output can be unpacked from the file using:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">values</span> <span class="o">=</span> <span class="n">paropt</span><span class="o">.</span><span class="n">unpack_output</span><span class="p">(</span><span class="s1">&#39;paropt.out&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The trust region variant of the algorithm, that is used as the default setting, can be run by modifying the options:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;algorithm&#39;</span><span class="p">:</span> <span class="n">tr</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>This produces the following result in the output in <code class="docutils literal notranslate"><span class="pre">paropt.tr</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ParOptTrustRegion</span> <span class="n">Parameter</span> <span class="n">Summary</span><span class="p">:</span>
+<span class="n">algorithm</span>                                <span class="n">tr</span>
+<span class="n">use_quasi_newton_update</span>                  <span class="kc">False</span>
+<span class="n">write_output_frequency</span>                   <span class="mi">0</span>
+
+<span class="nb">iter</span>         <span class="n">fobj</span>    <span class="n">infeas</span>        <span class="n">l1</span>    <span class="n">linfty</span>  <span class="o">|</span><span class="n">x</span> <span class="o">-</span> <span class="n">xk</span><span class="o">|</span>        <span class="n">tr</span>       <span class="n">rho</span>  <span class="n">mod</span> <span class="n">red</span><span class="o">.</span>     <span class="n">avg</span> <span class="n">z</span>     <span class="nb">max</span> <span class="n">z</span>  <span class="n">avg</span> <span class="n">pen</span><span class="o">.</span>  <span class="nb">max</span> <span class="n">pen</span><span class="o">.</span> <span class="n">info</span>
+   <span class="mi">0</span>  <span class="mf">4.04000e+02</span>  <span class="mf">0.00e+00</span>  <span class="mf">9.61e+02</span>  <span class="mf">6.19e+02</span>  <span class="mf">1.00e-01</span>  <span class="mf">1.50e-01</span>  <span class="mf">8.97e-01</span>  <span class="mf">1.20e+02</span>  <span class="mf">4.40e-08</span>  <span class="mf">4.40e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+   <span class="mi">1</span>  <span class="mf">2.96020e+02</span>  <span class="mf">0.00e+00</span>  <span class="mf">6.60e+02</span>  <span class="mf">3.97e+02</span>  <span class="mf">1.50e-01</span>  <span class="mf">2.25e-01</span>  <span class="mf">1.03e+00</span>  <span class="mf">1.17e+02</span>  <span class="mf">4.00e-08</span>  <span class="mf">4.00e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+   <span class="mi">2</span>  <span class="mf">1.75328e+02</span>  <span class="mf">0.00e+00</span>  <span class="mf">3.31e+02</span>  <span class="mf">1.71e+02</span>  <span class="mf">2.25e-01</span>  <span class="mf">3.38e-01</span>  <span class="mf">1.12e+00</span>  <span class="mf">9.75e+01</span>  <span class="mf">3.56e-08</span>  <span class="mf">3.56e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+   <span class="mi">3</span>  <span class="mf">6.64257e+01</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.10e+02</span>  <span class="mf">6.40e+01</span>  <span class="mf">3.21e-01</span>  <span class="mf">5.06e-01</span>  <span class="mf">1.31e+00</span>  <span class="mf">4.15e+01</span>  <span class="mf">3.16e-08</span>  <span class="mf">3.16e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+   <span class="mi">4</span>  <span class="mf">1.20441e+01</span>  <span class="mf">0.00e+00</span>  <span class="mf">2.32e+01</span>  <span class="mf">1.34e+01</span>  <span class="mf">2.09e-01</span>  <span class="mf">7.59e-01</span>  <span class="mf">1.19e+00</span>  <span class="mf">8.36e+00</span>  <span class="mf">2.99e-08</span>  <span class="mf">2.99e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+   <span class="mi">5</span>  <span class="mf">2.05970e+00</span>  <span class="mf">0.00e+00</span>  <span class="mf">3.00e+00</span>  <span class="mf">2.67e+00</span>  <span class="mf">5.55e-02</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.07e+00</span>  <span class="mf">4.66e-01</span>  <span class="mf">2.94e-08</span>  <span class="mf">2.94e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+   <span class="mi">6</span>  <span class="mf">1.56179e+00</span>  <span class="mf">0.00e+00</span>  <span class="mf">2.83e+00</span>  <span class="mf">2.16e+00</span>  <span class="mf">6.60e-03</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.72e+00</span>  <span class="mf">9.09e-03</span>  <span class="mf">2.94e-08</span>  <span class="mf">2.94e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+   <span class="mi">7</span>  <span class="mf">1.54617e+00</span>  <span class="mf">0.00e+00</span>  <span class="mf">4.12e+00</span>  <span class="mf">2.91e+00</span>  <span class="mf">3.53e-02</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.67e+00</span>  <span class="mf">3.97e-02</span>  <span class="mf">2.92e-08</span>  <span class="mf">2.92e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+   <span class="mi">8</span>  <span class="mf">1.47972e+00</span>  <span class="mf">0.00e+00</span>  <span class="mf">4.75e+00</span>  <span class="mf">2.97e+00</span>  <span class="mf">1.52e-01</span>  <span class="mf">1.00e+00</span>  <span class="mf">2.30e+00</span>  <span class="mf">1.50e-01</span>  <span class="mf">2.45e-08</span>  <span class="mf">2.45e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="n">skipH</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+   <span class="mi">9</span>  <span class="mf">1.13633e+00</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.21e+01</span>  <span class="mf">1.07e+01</span>  <span class="mf">2.00e-01</span>  <span class="mf">1.00e+00</span>  <span class="mf">4.55e-01</span>  <span class="mf">2.53e-01</span>  <span class="mf">2.51e-08</span>  <span class="mf">2.51e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+
+<span class="nb">iter</span>         <span class="n">fobj</span>    <span class="n">infeas</span>        <span class="n">l1</span>    <span class="n">linfty</span>  <span class="o">|</span><span class="n">x</span> <span class="o">-</span> <span class="n">xk</span><span class="o">|</span>        <span class="n">tr</span>       <span class="n">rho</span>  <span class="n">mod</span> <span class="n">red</span><span class="o">.</span>     <span class="n">avg</span> <span class="n">z</span>     <span class="nb">max</span> <span class="n">z</span>  <span class="n">avg</span> <span class="n">pen</span><span class="o">.</span>  <span class="nb">max</span> <span class="n">pen</span><span class="o">.</span> <span class="n">info</span>
+  <span class="mi">10</span>  <span class="mf">1.02106e+00</span>  <span class="mf">0.00e+00</span>  <span class="mf">2.03e+00</span>  <span class="mf">1.94e+00</span>  <span class="mf">1.16e-01</span>  <span class="mf">1.00e+00</span>  <span class="mf">2.96e-01</span>  <span class="mf">2.59e-01</span>  <span class="mf">2.82e-08</span>  <span class="mf">2.82e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">11</span>  <span class="mf">9.44283e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">3.86e+00</span>  <span class="mf">2.35e+00</span>  <span class="mf">4.52e-02</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.66e+00</span>  <span class="mf">4.35e-02</span>  <span class="mf">2.80e-08</span>  <span class="mf">2.80e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">12</span>  <span class="mf">8.72328e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">8.91e+00</span>  <span class="mf">7.93e+00</span>  <span class="mf">9.37e-02</span>  <span class="mf">1.00e+00</span>  <span class="mf">3.37e-01</span>  <span class="mf">6.44e-02</span>  <span class="mf">2.75e-08</span>  <span class="mf">2.75e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">13</span>  <span class="mf">8.50592e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">4.77e+00</span>  <span class="mf">4.13e+00</span>  <span class="mf">3.48e-02</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.08e+00</span>  <span class="mf">5.10e-02</span>  <span class="mf">2.77e-08</span>  <span class="mf">2.77e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">14</span>  <span class="mf">7.95434e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">3.84e+00</span>  <span class="mf">3.02e+00</span>  <span class="mf">1.42e-02</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.83e+00</span>  <span class="mf">2.42e-02</span>  <span class="mf">2.75e-08</span>  <span class="mf">2.75e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">15</span>  <span class="mf">7.51180e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">2.77e+00</span>  <span class="mf">2.70e+00</span>  <span class="mf">1.32e-01</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.50e+00</span>  <span class="mf">1.42e-01</span>  <span class="mf">2.66e-08</span>  <span class="mf">2.66e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">16</span>  <span class="mf">5.38497e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.29e+01</span>  <span class="mf">7.66e+00</span>  <span class="mf">1.40e-01</span>  <span class="mf">1.00e+00</span>  <span class="mf">5.75e-01</span>  <span class="mf">9.45e-02</span>  <span class="mf">2.55e-08</span>  <span class="mf">2.55e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">15</span>
+  <span class="mi">17</span>  <span class="mf">4.84154e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.33e+00</span>  <span class="mf">8.31e-01</span>  <span class="mf">2.75e-02</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.07e+00</span>  <span class="mf">1.26e-01</span>  <span class="mf">2.55e-08</span>  <span class="mf">2.55e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">18</span>  <span class="mf">3.48437e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.59e+00</span>  <span class="mf">1.31e+00</span>  <span class="mf">8.28e-02</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.74e+00</span>  <span class="mf">5.06e-02</span>  <span class="mf">2.48e-08</span>  <span class="mf">2.48e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">19</span>  <span class="mf">2.60394e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.59e+00</span>  <span class="mf">1.31e+00</span>  <span class="mf">0.00e+00</span>  <span class="mf">2.50e-01</span> <span class="o">-</span><span class="mf">2.47e+00</span>  <span class="mf">1.03e-01</span>  <span class="mf">2.31e-08</span>  <span class="mf">2.31e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+
+<span class="nb">iter</span>         <span class="n">fobj</span>    <span class="n">infeas</span>        <span class="n">l1</span>    <span class="n">linfty</span>  <span class="o">|</span><span class="n">x</span> <span class="o">-</span> <span class="n">xk</span><span class="o">|</span>        <span class="n">tr</span>       <span class="n">rho</span>  <span class="n">mod</span> <span class="n">red</span><span class="o">.</span>     <span class="n">avg</span> <span class="n">z</span>     <span class="nb">max</span> <span class="n">z</span>  <span class="n">avg</span> <span class="n">pen</span><span class="o">.</span>  <span class="nb">max</span> <span class="n">pen</span><span class="o">.</span> <span class="n">info</span>
+  <span class="mi">20</span>  <span class="mf">2.60394e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.95e+00</span>  <span class="mf">1.45e+00</span>  <span class="mf">6.85e-02</span>  <span class="mf">3.75e-01</span>  <span class="mf">1.57e+00</span>  <span class="mf">3.69e-02</span>  <span class="mf">2.43e-08</span>  <span class="mf">2.43e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">21</span>  <span class="mf">2.02340e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.08e+01</span>  <span class="mf">6.16e+00</span>  <span class="mf">1.87e-01</span>  <span class="mf">5.62e-01</span>  <span class="mf">9.16e-01</span>  <span class="mf">7.48e-02</span>  <span class="mf">2.29e-08</span>  <span class="mf">2.29e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">22</span>  <span class="mf">1.33863e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.08e+01</span>  <span class="mf">6.16e+00</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.41e-01</span>  <span class="mf">2.00e-01</span>  <span class="mf">4.59e-02</span>  <span class="mf">2.11e-08</span>  <span class="mf">2.11e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">23</span>  <span class="mf">1.33863e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.95e+00</span>  <span class="mf">1.08e+00</span>  <span class="mf">3.01e-02</span>  <span class="mf">2.11e-01</span>  <span class="mf">9.51e-01</span>  <span class="mf">3.57e-02</span>  <span class="mf">2.08e-08</span>  <span class="mf">2.08e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">24</span>  <span class="mf">9.99659e-02</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.35e+00</span>  <span class="mf">7.99e-01</span>  <span class="mf">2.92e-02</span>  <span class="mf">3.16e-01</span>  <span class="mf">1.86e+00</span>  <span class="mf">7.19e-03</span>  <span class="mf">2.29e-08</span>  <span class="mf">2.29e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">25</span>  <span class="mf">8.66158e-02</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.20e+01</span>  <span class="mf">7.47e+00</span>  <span class="mf">2.05e-01</span>  <span class="mf">3.16e-01</span>  <span class="mf">2.99e-01</span>  <span class="mf">4.26e-02</span>  <span class="mf">2.17e-08</span>  <span class="mf">2.17e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">26</span>  <span class="mf">7.38950e-02</span>  <span class="mf">0.00e+00</span>  <span class="mf">9.08e-01</span>  <span class="mf">7.20e-01</span>  <span class="mf">8.04e-02</span>  <span class="mf">3.16e-01</span>  <span class="mf">5.39e-01</span>  <span class="mf">5.39e-02</span>  <span class="mf">1.82e-08</span>  <span class="mf">1.82e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">27</span>  <span class="mf">4.48191e-02</span>  <span class="mf">0.00e+00</span>  <span class="mf">4.32e-01</span>  <span class="mf">2.96e-01</span>  <span class="mf">5.48e-02</span>  <span class="mf">4.75e-01</span>  <span class="mf">1.79e+00</span>  <span class="mf">7.61e-03</span>  <span class="mf">2.19e-08</span>  <span class="mf">2.19e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">28</span>  <span class="mf">3.12023e-02</span>  <span class="mf">0.00e+00</span>  <span class="mf">4.32e-01</span>  <span class="mf">2.96e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.19e-01</span> <span class="o">-</span><span class="mf">2.00e+00</span>  <span class="mf">2.31e-02</span>  <span class="mf">2.08e-08</span>  <span class="mf">2.08e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">29</span>  <span class="mf">3.12023e-02</span>  <span class="mf">0.00e+00</span>  <span class="mf">2.26e-01</span>  <span class="mf">1.39e-01</span>  <span class="mf">5.46e-02</span>  <span class="mf">1.78e-01</span>  <span class="mf">1.76e+00</span>  <span class="mf">5.91e-03</span>  <span class="mf">2.16e-08</span>  <span class="mf">2.16e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+
+<span class="nb">iter</span>         <span class="n">fobj</span>    <span class="n">infeas</span>        <span class="n">l1</span>    <span class="n">linfty</span>  <span class="o">|</span><span class="n">x</span> <span class="o">-</span> <span class="n">xk</span><span class="o">|</span>        <span class="n">tr</span>       <span class="n">rho</span>  <span class="n">mod</span> <span class="n">red</span><span class="o">.</span>     <span class="n">avg</span> <span class="n">z</span>     <span class="nb">max</span> <span class="n">z</span>  <span class="n">avg</span> <span class="n">pen</span><span class="o">.</span>  <span class="nb">max</span> <span class="n">pen</span><span class="o">.</span> <span class="n">info</span>
+  <span class="mi">30</span>  <span class="mf">2.08028e-02</span>  <span class="mf">0.00e+00</span>  <span class="mf">2.26e-01</span>  <span class="mf">1.39e-01</span>  <span class="mf">0.00e+00</span>  <span class="mf">4.45e-02</span>  <span class="mf">1.73e-01</span>  <span class="mf">1.64e-02</span>  <span class="mf">2.07e-08</span>  <span class="mf">2.07e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">31</span>  <span class="mf">2.08028e-02</span>  <span class="mf">0.00e+00</span>  <span class="mf">2.12e-01</span>  <span class="mf">1.79e-01</span>  <span class="mf">4.45e-02</span>  <span class="mf">6.67e-02</span>  <span class="mf">1.25e+00</span>  <span class="mf">5.38e-03</span>  <span class="mf">2.14e-08</span>  <span class="mf">2.14e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">32</span>  <span class="mf">1.40946e-02</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.25e+00</span>  <span class="mf">7.53e-01</span>  <span class="mf">6.67e-02</span>  <span class="mf">1.00e-01</span>  <span class="mf">9.35e-01</span>  <span class="mf">7.50e-03</span>  <span class="mf">2.11e-08</span>  <span class="mf">2.11e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">33</span>  <span class="mf">7.07496e-03</span>  <span class="mf">0.00e+00</span>  <span class="mf">3.65e+00</span>  <span class="mf">2.37e+00</span>  <span class="mf">7.35e-02</span>  <span class="mf">1.00e-01</span>  <span class="mf">5.32e-01</span>  <span class="mf">2.76e-03</span>  <span class="mf">2.06e-08</span>  <span class="mf">2.06e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">34</span>  <span class="mf">5.60569e-03</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.67e+00</span>  <span class="mf">1.06e+00</span>  <span class="mf">1.58e-02</span>  <span class="mf">1.50e-01</span>  <span class="mf">1.26e+00</span>  <span class="mf">1.79e-03</span>  <span class="mf">1.94e-08</span>  <span class="mf">1.94e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">35</span>  <span class="mf">3.35667e-03</span>  <span class="mf">0.00e+00</span>  <span class="mf">5.38e-01</span>  <span class="mf">3.26e-01</span>  <span class="mf">1.84e-02</span>  <span class="mf">2.25e-01</span>  <span class="mf">1.51e+00</span>  <span class="mf">1.05e-03</span>  <span class="mf">2.03e-08</span>  <span class="mf">2.03e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">36</span>  <span class="mf">1.76414e-03</span>  <span class="mf">0.00e+00</span>  <span class="mf">6.54e-02</span>  <span class="mf">3.54e-02</span>  <span class="mf">4.14e-02</span>  <span class="mf">3.38e-01</span>  <span class="mf">1.39e+00</span>  <span class="mf">9.90e-04</span>  <span class="mf">2.07e-08</span>  <span class="mf">2.07e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">37</span>  <span class="mf">3.92289e-04</span>  <span class="mf">0.00e+00</span>  <span class="mf">3.63e-01</span>  <span class="mf">2.40e-01</span>  <span class="mf">3.34e-02</span>  <span class="mf">5.07e-01</span>  <span class="mf">1.04e+00</span>  <span class="mf">3.35e-04</span>  <span class="mf">2.04e-08</span>  <span class="mf">2.04e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">38</span>  <span class="mf">4.46965e-05</span>  <span class="mf">0.00e+00</span>  <span class="mf">1.70e-02</span>  <span class="mf">1.05e-02</span>  <span class="mf">3.49e-03</span>  <span class="mf">7.60e-01</span>  <span class="mf">1.09e+00</span>  <span class="mf">3.97e-05</span>  <span class="mf">2.05e-08</span>  <span class="mf">2.05e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">39</span>  <span class="mf">1.49333e-06</span>  <span class="mf">0.00e+00</span>  <span class="mf">3.00e-03</span>  <span class="mf">2.00e-03</span>  <span class="mf">2.38e-03</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.01e+00</span>  <span class="mf">1.48e-06</span>  <span class="mf">2.04e-08</span>  <span class="mf">2.04e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+
+<span class="nb">iter</span>         <span class="n">fobj</span>    <span class="n">infeas</span>        <span class="n">l1</span>    <span class="n">linfty</span>  <span class="o">|</span><span class="n">x</span> <span class="o">-</span> <span class="n">xk</span><span class="o">|</span>        <span class="n">tr</span>       <span class="n">rho</span>  <span class="n">mod</span> <span class="n">red</span><span class="o">.</span>     <span class="n">avg</span> <span class="n">z</span>     <span class="nb">max</span> <span class="n">z</span>  <span class="n">avg</span> <span class="n">pen</span><span class="o">.</span>  <span class="nb">max</span> <span class="n">pen</span><span class="o">.</span> <span class="n">info</span>
+  <span class="mi">40</span>  <span class="mf">2.52590e-09</span>  <span class="mf">0.00e+00</span>  <span class="mf">7.23e-05</span>  <span class="mf">4.88e-05</span>  <span class="mf">1.12e-05</span>  <span class="mf">1.00e+00</span>  <span class="mf">9.78e-01</span>  <span class="mf">2.58e-09</span>  <span class="mf">2.04e-08</span>  <span class="mf">2.04e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+  <span class="mi">41</span>  <span class="mf">2.10651e-12</span>  <span class="mf">0.00e+00</span>  <span class="mf">2.52e-09</span>  <span class="mf">1.56e-09</span>  <span class="mf">1.64e-06</span>  <span class="mf">1.00e+00</span>  <span class="mf">1.00e+00</span>  <span class="mf">2.11e-12</span>  <span class="mf">2.04e-08</span>  <span class="mf">2.04e-08</span>  <span class="mf">1.00e+03</span>  <span class="mf">1.00e+03</span> <span class="mi">21</span><span class="o">/</span><span class="mi">14</span>
+</pre></div>
+</div>
+<p>The trust region output again outputs the parameter values.
+Next, the file contains the iteration history with the following columns</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">iter</span></code> the current iteration</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fobj</span></code> the objective value</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">infeas</span></code> the l1 norm of the constraint violation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">l1</span></code> the l1 norm of the optimality conditions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">linfty</span></code> the l-infinity norm of the optimality conditions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">|x</span> <span class="pre">-</span> <span class="pre">xk|</span></code> the step lenth</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tr</span></code> the trust region radius</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rho</span></code> the ratio of the actual improvement to the expected improvement used in the acceptance criteria</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mod</span> <span class="pre">red.</span></code> the predicted model reduction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">avg</span> <span class="pre">z</span></code> the average multiplier</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max</span> <span class="pre">z</span></code> the maximum multiplier</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">avg</span> <span class="pre">pen.</span></code> the average penalty value</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max</span> <span class="pre">pen.</span></code> the maximum penalty value</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">info</span></code> information about the interior-point subproblem solution (iteration for the step/iteration for the penalty problem)</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="options.html" class="btn btn-neutral float-left" title="Options and generic interface for ParOpt optimziers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sellar.html" class="btn btn-neutral float-right" title="Sellar problem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Graeme Kennedy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
